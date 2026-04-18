@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS projects (
-    project_key INTEGER PRIMARY KEY,
-    project_id INTEGER,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     query_string TEXT,
     repository_id INTEGER,
     repository_url TEXT,
@@ -20,35 +19,39 @@ CREATE TABLE IF NOT EXISTS projects (
 
 CREATE TABLE IF NOT EXISTS files (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_key INTEGER,
+    project_id INTEGER,
     file_name TEXT,
     file_type TEXT,
-    status TEXT
+    status TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
 CREATE TABLE IF NOT EXISTS keywords (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_key INTEGER,
-    keyword TEXT
+    project_id INTEGER,
+    keyword TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
 CREATE TABLE IF NOT EXISTS person_role (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_key INTEGER,
+    project_id INTEGER,
     name TEXT,
-    role TEXT
+    role TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
 CREATE TABLE IF NOT EXISTS licenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_key INTEGER,
-    license TEXT
+    project_id INTEGER,
+    license TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
 CREATE TABLE IF NOT EXISTS qualitative_scores_ukdata (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_key INTEGER,
     project_id INTEGER,
+    source_project_id TEXT,
     total_score INTEGER,
     label TEXT,
     kind_of_data_score INTEGER,
@@ -57,13 +60,14 @@ CREATE TABLE IF NOT EXISTS qualitative_scores_ukdata (
     abstract_score INTEGER,
     methodology_score INTEGER,
     reasons TEXT,
-    timestamp TEXT
+    timestamp TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );
 
 CREATE TABLE IF NOT EXISTS qualitative_scores_aussda (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_key INTEGER,
     project_id INTEGER,
+    source_project_id TEXT,
     total_score INTEGER,
     label TEXT,
     description_score INTEGER,
@@ -72,12 +76,6 @@ CREATE TABLE IF NOT EXISTS qualitative_scores_aussda (
     file_categories_score INTEGER,
     file_description_score INTEGER,
     reasons TEXT,
-    timestamp TEXT
-);
-
-CREATE TABLE IF NOT EXISTS failures (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_key INTEGER,
-    reason TEXT,
-    timestamp TEXT
+    timestamp TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );

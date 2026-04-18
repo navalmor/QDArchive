@@ -1,0 +1,29 @@
+{
+  "repository": "uk-data-service",
+  "repository_id": 3,
+  "run_started_at": "2026-04-18T22:40:31.329589",
+  "run_finished_at": "2026-04-18T22:53:10.084561",
+  "search_terms": [
+    ""
+  ],
+  "bucket_rule_note": "For UKDS, projects_with_numeric_data follows DataFormat == 'numeric'. File presence for non-numeric projects is based on open file-list availability or restricted access types.",
+  "counts": {
+    "received_results": 6898,
+    "unique_projects_seen": 6220,
+    "processed_projects": 3180,
+    "saved_projects": 1060,
+    "skipped_projects": 5160,
+    "failed_projects": 0
+  },
+  "projects_with_numeric_data": 3040,
+  "projects_with_non_numeric_data": {
+    "identified_qualitative_projects": {
+      "projects_with_files": 1060,
+      "projects_with_no_files": 0
+    },
+    "identified_non_qualitative_projects": {
+      "projects_with_files": 2108,
+      "projects_with_no_files": 12
+    }
+  }
+}

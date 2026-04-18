@@ -1,0 +1,29 @@
+{
+  "repository": "aussda",
+  "repository_id": 12,
+  "run_started_at": "2026-04-18T22:18:23.818974",
+  "run_finished_at": "2026-04-18T22:22:32.647786",
+  "search_terms": [
+    "*"
+  ],
+  "bucket_rule_note": "For AUSSDA, projects_with_numeric_data follows should_skip_kind_of_data(kindOfData).",
+  "counts": {
+    "received_results": 1607,
+    "unique_projects_seen": 1607,
+    "analysed_projects": 169,
+    "saved_projects": 64,
+    "skipped_projects": 1543,
+    "failed_projects": 0
+  },
+  "projects_with_numeric_data": 1438,
+  "projects_with_non_numeric_data": {
+    "identified_qualitative_projects": {
+      "projects_with_files": 64,
+      "projects_with_no_files": 0
+    },
+    "identified_non_qualitative_projects": {
+      "projects_with_files": 9,
+      "projects_with_no_files": 96
+    }
+  }
+}
