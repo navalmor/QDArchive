@@ -5,13 +5,13 @@ database_manager.py
 
 Shared SQLite database management utilities for repository ingestion pipelines.
 
-This module intentionally contains only repository-agnostic database concerns:
+This module contains only repository-agnostic database concerns:
 - connection setup
 - schema initialization
 - transaction control
-- small helper queries used by multiple pipelines
+- generic helper queries for the professor-aligned schema
 
-Repository-specific SQL INSERT logic should remain inside each repository script.
+Repository-specific INSERT logic should remain inside each repository script.
 """
 
 from pathlib import Path
@@ -23,8 +23,9 @@ class DatabaseManagement:
     """
     Thin SQLite manager for ingestion pipelines.
 
-    This class keeps database setup and common row-management logic in one place
-    while leaving repository-specific persistence logic to the pipeline scripts.
+    The professor-aligned schema uses:
+    - PROJECTS.id as the parent key
+    - child tables linked through project_id
     """
 
     def __init__(
@@ -103,65 +104,72 @@ class DatabaseManagement:
     def execute(self, sql: str, params: Sequence[Any] = ()) -> sqlite3.Cursor:
         """
         Execute a single SQL statement.
-
-        Parameters
-        ----------
-        sql:
-            SQL statement.
-        params:
-            Positional parameters for the SQL statement.
         """
         return self.cur.execute(sql, params)
 
     def executemany(self, sql: str, rows: Iterable[Sequence[Any]]) -> sqlite3.Cursor:
         """
         Execute a SQL statement against multiple parameter rows.
-
-        Parameters
-        ----------
-        sql:
-            SQL statement.
-        rows:
-            Iterable of parameter sequences.
         """
         return self.cur.executemany(sql, rows)
 
-    def get_existing_project_folder(self, project_key: Any) -> Optional[str]:
+    def get_project_id(self, *, repository_id: int, project_url: str) -> Optional[int]:
         """
-        Return the existing download_project_folder for a project, if present.
+        Return the existing PROJECTS.id for a repository item, if present.
 
-        Parameters
-        ----------
-        project_key:
-            Repository-specific project key.
+        A project is identified by:
+        - repository_id
+        - project_url
         """
-        self.cur.execute(
-            "SELECT download_project_folder FROM projects WHERE project_key = ?",
-            (project_key,),
-        )
-        row = self.cur.fetchone()
+        row = self.cur.execute(
+            """
+            SELECT id
+            FROM projects
+            WHERE repository_id = ? AND project_url = ?
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (repository_id, project_url),
+        ).fetchone()
+        return int(row["id"]) if row else None
+
+    def get_project_folder(self, project_id: Optional[int]) -> Optional[str]:
+        """
+        Return download_project_folder for a PROJECTS.id value.
+        """
+        if project_id is None:
+            return None
+
+        row = self.cur.execute(
+            "SELECT download_project_folder FROM projects WHERE id = ?",
+            (project_id,),
+        ).fetchone()
+
         if not row:
             return None
+
         folder = row["download_project_folder"]
         return str(folder) if folder else None
 
     def delete_project_rows(
         self,
-        project_key: Any,
+        *,
+        project_id: int,
         score_table: str,
         extra_tables: Optional[Iterable[str]] = None,
     ) -> None:
         """
-        Delete all common project-linked rows for one project.
+        Delete all common child rows for one PROJECTS.id and then delete the
+        parent project row.
 
         Parameters
         ----------
-        project_key:
-            Repository-specific project key.
+        project_id:
+            Parent PROJECTS.id value.
         score_table:
             Repository-specific qualitative score table name.
         extra_tables:
-            Optional extra project-linked tables to delete from.
+            Optional additional child tables linked by project_id.
         """
         tables = [
             "keywords",
@@ -169,14 +177,15 @@ class DatabaseManagement:
             "person_role",
             "files",
             score_table,
-            "projects",
         ]
 
         if extra_tables:
             tables.extend(extra_tables)
 
         for table in tables:
-            self.cur.execute(f"DELETE FROM {table} WHERE project_key = ?", (project_key,))
+            self.cur.execute(f"DELETE FROM {table} WHERE project_id = ?", (project_id,))
+
+        self.cur.execute("DELETE FROM projects WHERE id = ?", (project_id,))
 
     def __enter__(self) -> "DatabaseManagement":
         """
